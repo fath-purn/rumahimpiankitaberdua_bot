@@ -4,7 +4,7 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { FieldValue } = require('@google-cloud/firestore');
-const { Telegraf } = require('telegraf');
+// const { Telegraf } = require('telegraf');
 
 const Note = require('./db');
 
@@ -18,14 +18,7 @@ const app = express()
 app.use(bodyParser.json())
 app.use(cors())
 
-
-
 bot.command("start", (ctx) => ctx.reply('Assalamualaikum, saya asisten purno, silahkan ketik /help untuk melihat perintah yang tersedia'));
-// bot.command((ctx) => ctx.reply('Assalamualaikum, saya asisten purno, silahkan ketik /help untuk melihat perintah yang tersedia'));
-// bot.on("message", (ctx) => ctx.reply("Got another message!"));
-
-
-
 
 bot.command('help', async (ctx) => {
     await bot.api.sendMessage(ctx.chat.id, `<b>Perintah yang tersedia:</b> 
@@ -33,15 +26,17 @@ bot.command('help', async (ctx) => {
     /info - menampilkan info bot 
     /wiki [text] - menampilkan hasil pencarian wikipedia 
     /note [text] - membuat catatan 
-    /lihat - menampilkan catatan`, { parse_mode: 'HTML' },);
+    /lihat - menampilkan catatan
+    /hapus - untuk menghapus notes`, { parse_mode: 'HTML' },);
 
     // // ctx.telegram.deleteWebhook;
 });
 
 bot.command('info', async (ctx) => {
     await bot.api.sendMessage(ctx.chat.id, `<b>Info bot:</b> 
-    <b>Bot Name:</b> asistenpurno_bot
-    <b>Bot Username:</b> @asistenpurno_bot
+    <b>Bot Name:</b> Rumah Impian
+    <b>Bot Username:</b> @rumahkitabersama_bot
+    <b>version:</b> 1.0.0
 
     <b>Bot dibuat pada:</b> 07 Maret 2023`, { parse_mode: 'HTML' });
 
