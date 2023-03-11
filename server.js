@@ -223,7 +223,7 @@ BOT.command('hapus', async (ctx) => {
 if (process.env.NODE_ENV === "production") {
   const app = express();
   app.use(express.json());
-  app.use(webhookCallback(BOT, "express"));
+//   app.use(webhookCallback(BOT, "express"));
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
