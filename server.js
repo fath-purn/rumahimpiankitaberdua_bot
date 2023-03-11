@@ -1,6 +1,6 @@
 const { Bot, webhookCallback } = require("grammy");
 const express = require("express");
-const axios = require('axios');
+// const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { FieldValue } = require('@google-cloud/firestore');
@@ -10,13 +10,8 @@ const Note = require('./db');
 
 require("dotenv").config();
 
-// const { TELEGRAM_TOKEN, SERVER_URL, API_WIKI, API_CUACA } = process.env;
-// const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
-// const URI = `/webhook/${TELEGRAM_TOKEN}`;
-// const WEBHOOK_URL = SERVER_URL + URI;
-
-// const bot = new Bot(process.env.TELEGRAM_TOKEN);
-const BOT = new Telegraf(process.env.TELEGRAM_TOKEN);
+const bot = new Bot(process.env.TELEGRAM_TOKEN);
+// const BOT = new Telegraf(process.env.TELEGRAM_TOKEN);
 
 const app = express()
 
@@ -25,37 +20,37 @@ app.use(cors())
 
 
 
-// bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
-BOT.start((ctx) => ctx.reply('Assalamualaikum, saya asisten purno, silahkan ketik /help untuk melihat perintah yang tersedia'));
+bot.command("start", (ctx) => ctx.reply('Assalamualaikum, saya asisten purno, silahkan ketik /help untuk melihat perintah yang tersedia'));
+// bot.command((ctx) => ctx.reply('Assalamualaikum, saya asisten purno, silahkan ketik /help untuk melihat perintah yang tersedia'));
 // bot.on("message", (ctx) => ctx.reply("Got another message!"));
 
 
 
 
-BOT.command('help', (ctx) => {
-    ctx.replyWithHTML(`<b>Perintah yang tersedia:</b> 
-    /help - menampilkan perintah yang tersedia
-    /info - menampilkan info bot
-    /wiki [text] - menampilkan hasil pencarian wikipedia
-    /note [text] - membuat catatan
-    /note - menampilkan catatan`);
+bot.command('help', async (ctx) => {
+    await bot.api.sendMessage(ctx.chat.id, `<b>Perintah yang tersedia:</b> 
+    /help - menampilkan perintah yang tersedia 
+    /info - menampilkan info bot 
+    /wiki [text] - menampilkan hasil pencarian wikipedia 
+    /note [text] - membuat catatan 
+    /lihat - menampilkan catatan`, { parse_mode: 'HTML' },);
 
-    ctx.telegram.deleteWebhook;
+    // // ctx.telegram.deleteWebhook;
 });
 
-BOT.command('info', async (ctx) => {
-    ctx.replyWithHTML(`<b>Info bot:</b> 
+bot.command('info', async (ctx) => {
+    await bot.api.sendMessage(ctx.chat.id, `<b>Info bot:</b> 
     <b>Bot Name:</b> asistenpurno_bot
     <b>Bot Username:</b> @asistenpurno_bot
 
-    <b>Bot dibuat pada:</b> 07 Maret 2023`);
+    <b>Bot dibuat pada:</b> 07 Maret 2023`, { parse_mode: 'HTML' });
 
-    ctx.telegram.deleteWebhook;
+    // // ctx.telegram.deleteWebhook;
 });
 
 
 // wikipedia hasil tidak jelas
-BOT.command('wiki', async (ctx) => {
+bot.command('wiki', async (ctx) => {
 
     ctx.reply('Dalam proses pengembangan');
 
@@ -72,15 +67,15 @@ BOT.command('wiki', async (ctx) => {
 
     // console.log(query)
 
-    ctx.replyWithHTML(`<b>${title}</b>
-    ${timestamp}`);
-    ctx.telegram.deleteWebhook;
+    await bot.api.sendMessage(ctx.chat.id, `<b>${title}</b>
+    ${timestamp}`, { parse_mode: 'HTML' });
+    // ctx.telegram.deleteWebhook;
 
 });
 
 
 // belum berhasil (menampilkan cuaca)
-BOT.command('cuaca', async (ctx) => {
+bot.command('cuaca', async (ctx) => {
 
     ctx.reply('Dalam proses pengembangan');
 
@@ -96,13 +91,13 @@ BOT.command('cuaca', async (ctx) => {
 
     // console.log(res.data, typeof lon)
 
-    ctx.replyWithHTML(`<b>${data}</b>
-    ${level, lon}`)
-    ctx.telegram.deleteWebhook;
+    await bot.api.sendMessage(ctx.chat.id, `<b>${data}</b>
+    ${level, lon}, { parse_mode: 'HTML' }`)
+    // ctx.telegram.deleteWebhook;
 
 });
 
-BOT.command('note', async (ctx) => {
+bot.command('note', async (ctx) => {
     const query = ctx.message.text.split(' ').slice(1).join(' ');
     const snapshot = await Note.orderBy('timestamp', 'desc').get();
     const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -129,10 +124,10 @@ BOT.command('note', async (ctx) => {
     await Note.add(notes);
 
     ctx.reply(`Note berhasil disimpan`)
-    ctx.telegram.deleteWebhook;
+    // ctx.telegram.deleteWebhook;
 });
 
-BOT.command('lihat', async (ctx) => {
+bot.command('lihat', async (ctx) => {
     const id_tele = ctx.chat.id;
     const snapshot = await Note.orderBy('timestamp', 'asc').where('id_tele', '==', id_tele).get();
     const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -144,7 +139,7 @@ BOT.command('lihat', async (ctx) => {
 
     if (!query) {
         // snapshot.forEach(doc => {console.log(doc.id, '=>', doc.data())});
-        ctx.telegram.sendMessage(ctx.chat.id, `Pilih note yang ingin dilihat antara 1 - ${data.length} \n\n Reply /lihat [nomor]`)
+        await bot.api.sendMessage(ctx.chat.id, `Pilih note yang ingin dilihat antara 1 \\- ${data.length} \n\n Reply /lihat [nomor]`, { parse_mode: "MarkdownV2" });
     } else {
         if (data.length < query) {
             return ctx.reply(`Note tidak ditemukan`)
@@ -154,17 +149,17 @@ BOT.command('lihat', async (ctx) => {
                 if (data.hasOwnProperty(key)) {
                     if (query == key) {
                         var a = query + 1;
-                        ctx.telegram.sendMessage(ctx.chat.id, `No: ${a} \nNote: ${data[query].note} \n\n\nTanggal: ${data[query].tgl}`)
+                        await bot.api.sendMessage(ctx.chat.id, `No: ${a} \nNote: ${data[query].note} \n\n\nTanggal: ${data[query].tgl}`)
                     }
                 }
             }
         }
     }
-    ctx.telegram.deleteWebhook;
+    // ctx.telegram.deleteWebhook;
 });
 
 
-BOT.command('hapus', async (ctx) => {
+bot.command('hapus', async (ctx) => {
     const id_tele = ctx.chat.id;
     const snapshot = await Note.orderBy('timestamp', 'asc').where('id_tele', '==', id_tele).get();
     const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -176,7 +171,7 @@ BOT.command('hapus', async (ctx) => {
 
     if (!query) {
         // snapshot.forEach(doc => {console.log(doc.id, '=>', doc.data())});
-        ctx.telegram.sendMessage(ctx.chat.id, `Pilih note yang ingin dihapus antara 1 - ${data.length} \n\n Reply /hapus [nomor]`)
+        ctx.telegram.sendMessage(ctx.chat.id, `Pilih note yang ingin dihapus antara 1 \\- ${data.length} \n\n Reply /hapus [nomor]`, { parse_mode: "MarkdownV2" });
     } else {
         if (data.length < query) {
             return ctx.reply(`Note tidak ditemukan`)
@@ -185,18 +180,18 @@ BOT.command('hapus', async (ctx) => {
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
                     if (query == key) {
-                        console.log('Berhasil dihapus');
+                        // console.log('Berhasil dihapus');
                         const ID = data[key].id;
                         var a = query + 1;
                         delete ID;
                         await Note.doc(ID).delete();
-                        ctx.telegram.sendMessage(ctx.chat.id, `No: ${a} \nBerhasil dihapus`)
+                        await bot.api.sendMessage(ctx.chat.id, `No: ${a} \nBerhasil dihapus`, { parse_mode: "MarkdownV2" });
                     }
                 }
             }
         }
     }
-    ctx.telegram.deleteWebhook;
+    // ctx.telegram.deleteWebhook;
 });
 
 
@@ -223,16 +218,15 @@ BOT.command('hapus', async (ctx) => {
 if (process.env.NODE_ENV === "production") {
   const app = express();
   app.use(express.json());
-//   app.use(webhookCallback(BOT, "express"));
+  app.use(webhookCallback(bot, "express"));
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Bot listening on port ${PORT}`);
   });
-} else {
-  BOT.launch();
-//   bot.start();
+} else {;
+  bot.start();
 }
 
-process.once("SIGINT", () => BOT.stop("SIGINT"));
-process.once("SIGTERM", () => BOT.stop("SIGTERM"));
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
